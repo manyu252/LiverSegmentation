@@ -1,0 +1,4 @@
+numpy
+nibabel
+git+https://github.com/wasserth/TotalSegmentator.git
+pydicom
