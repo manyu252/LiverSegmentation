@@ -15,7 +15,11 @@ import nibabel as nib
 from totalsegmentator.python_api import totalsegmentator
 
 def runTotalSegmentator(input_file, output_path):
-    totalsegmentator(input_file, output_path, fast=True, ml=True, roi_subset=['liver'])
+    # For CPU usage (local)
+    # totalsegmentator(input_file, output_path, fast=True, ml=True, roi_subset=['liver'])
+
+    # For GPU usage (in scalpel)
+    totalsegmentator(input_file, output_path, ml=True)
 
 def calculateDICEScore(input_file, output_file):
     nifti1_img = nib.load(input_file)
@@ -44,7 +48,10 @@ def calculateDICEScore(input_file, output_file):
 
 def main():
     input_file = sys.argv[1]
-    seg_path = sys.argv[2]
+    try:
+        seg_path = sys.argv[2]
+    except:
+        seg_path = None
     output_path = 'temp/'
     os.makedirs(output_path, exist_ok=True)
 
@@ -57,9 +64,10 @@ def main():
         runTotalSegmentator(input_file, os.path.join(output_path, filename))
 
         # calculate the dice score
-        print(f'\nCalculating DICE score for {filename}')
-        print(f'Using {seg_path}')
-        dice = calculateDICEScore(os.path.join(output_path, filename), seg_path)
+        if seg_path:
+            print(f'\nCalculating DICE score for {filename}')
+            print(f'Using {seg_path}')
+            dice = calculateDICEScore(os.path.join(output_path, filename), seg_path)
 
     # check if input is a directory
     elif os.path.isdir(input_file):
@@ -76,18 +84,19 @@ def main():
                     print(f'\nRunning TotalSegmentator on {file}')
                     runTotalSegmentator(os.path.join(input_file, file), os.path.join(output_path, file))
 
-                    # get the file number from the file name
-                    file_no = int(''.join(filter(str.isdigit, file)))
-                    seg_file = f'segmentation-{file_no}.nii'    
-                    print(f'\nCalculating DICE score for {file}')
-                    print(f'Using {seg_file}')
+                    if seg_path:
+                        # get the file number from the file name
+                        file_no = int(''.join(filter(str.isdigit, file)))
+                        seg_file = f'segmentation-{file_no}.nii'
+                        print(f'\nCalculating DICE score for {file}')
+                        print(f'Using {seg_file}')
 
-                    # calculate the dice score
-                    dice = calculateDICEScore(os.path.join(output_path, file), os.path.join(seg_path, f'segmentation-{file_no}.nii'))
+                        # calculate the dice score
+                        dice = calculateDICEScore(os.path.join(output_path, file), os.path.join(seg_path, f'segmentation-{file_no}.nii'))
 
-                    # write the input file, segmentation file and the dice score to the csv file
-                    with open('temp/dice_scores.csv', 'a') as f:
-                        f.write(f'{file_no}, {file}, {seg_file}, {dice}\n')
+                        # write the input file, segmentation file and the dice score to the csv file
+                        with open('temp/dice_scores.csv', 'a') as f:
+                            f.write(f'{file_no}, {file}, {seg_file}, {dice}\n')
             except Exception as e:
                 print(f'Error processing {file}: {e}')
 
