@@ -9,6 +9,7 @@
 
 import sys
 import os
+import time
 
 import numpy as np
 import nibabel as nib
@@ -71,18 +72,26 @@ def main():
 
     # check if input is a directory
     elif os.path.isdir(input_file):
+        count = 0
+        ts_time = 0
+        total_time = 0
         # open a new csv file to save the input file, segmentation file and the dice score
-        with open('temp/dice_scores.csv', 'w') as f:
-            f.write('File-No, Input File, Segmentation File, Dice Score\n')
+        if seg_path:
+            seg_time = 0
+            with open('temp/dice_scores.csv', 'w') as f:
+                f.write('File-No, Input File, Segmentation File, Dice Score\n')
 
         # loop through all the files in the input directory
-        for file in os.listdir(input_file):
+        for file in sorted(os.listdir(input_file)):
             try:
                 # check if the file is a nifti file
                 if file.endswith('.nii') or file.endswith('.nii.gz'):
+                    t0 = time.time()
                     # run the total segmentator on the file
                     print(f'\nRunning TotalSegmentator on {file}')
+                    ts_start = time.time()
                     runTotalSegmentator(os.path.join(input_file, file), os.path.join(output_path, file))
+                    ts_time += time.time() - ts_start
 
                     if seg_path:
                         # get the file number from the file name
@@ -92,13 +101,26 @@ def main():
                         print(f'Using {seg_file}')
 
                         # calculate the dice score
+                        seg_start = time.time()
                         dice = calculateDICEScore(os.path.join(output_path, file), os.path.join(seg_path, f'segmentation-{file_no}.nii'))
+                        seg_time += time.time() - seg_start
 
                         # write the input file, segmentation file and the dice score to the csv file
                         with open('temp/dice_scores.csv', 'a') as f:
                             f.write(f'{file_no}, {file}, {seg_file}, {dice}\n')
+                    count += 1
+                    total_time += time.time() - t0
             except Exception as e:
                 print(f'Error processing {file}: {e}')
+
+        print(f'Processed {count} files')
+        print(f'\nTotalSegmentator time: {ts_time} seconds')
+        print(f'Average TotalSegmentator time per file: {ts_time/count} seconds')
+        if seg_path:
+            print(f'Segmentation time: {seg_time} seconds')
+            print(f'Average Segmentation time per file: {seg_time/count} seconds')
+        print(f'\nTotal time: {total_time} seconds')
+        print(f'Average time per file: {total_time/count} seconds')
 
 if __name__ == '__main__':
     main()
