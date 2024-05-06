@@ -4,6 +4,9 @@
 # and calculate the DICE score between the output of the TotalSegmentator
 # and the ground truth segmentation file.
 #
+# author: Abhimanyu Anand (Abhi)
+# email: manyu252@gmail.com
+#
 ##################################################################
 
 
