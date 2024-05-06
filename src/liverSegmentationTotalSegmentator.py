@@ -7,6 +7,10 @@
 # author: Abhimanyu Anand (Abhi)
 # email: manyu252@gmail.com
 #
+# Usage:
+# # Single file mode: python3 src/liverSegmentationTotalSegmentator.py <input_file.nii> <ground_truth_segmentation.nii>[OPTIONAL]
+# # Directory mode: python3 src/liverSegmentationTotalSegmentator.py <input_directory> <ground_truth_directory>[OPTIONAL]
+#
 ##################################################################
 
 

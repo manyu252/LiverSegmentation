@@ -1,3 +1,20 @@
+########################################
+#
+# This script combines liver and hepatic vessel segmentations into a single NIfTI file for each case.
+#
+# author: Abhimanyu Anand (Abhi)
+# email: manyu252@gmail.com
+#
+# Usage: python src/createCombinedSegmentation.py
+#
+# Note: Change the local paths of the datasets to be used to combine.
+# Note: The filenames are the same in both the datasets for easier use. Change this part of the code if required in the future.
+# Note: The classes of the segmetations to be combined are also hard coded. Change them if required.
+#
+# Read the README file for better understanding.
+#
+########################################
+
 import os
 import time
 
@@ -35,6 +52,7 @@ for file in sorted(os.listdir(liver_seg_dir)):
     # Assign 2 to hepatic vessels, overwrite liver label if necessary
     combined_seg_data[np.where(vessel_seg_data == 1)] = 2
 
+    # Save the new NIfTI combined image using the original liver segmentation file affine and header
     new_img = nib.Nifti1Image(combined_seg_data, liver_seg_img.affine, liver_seg_img.header)
     combined_seg_file_name = f'liver_hepatic_vessel_{file_no:03d}.nii.gz'
     combined_seg_save_path = os.path.join(combined_seg_dir, combined_seg_file_name)
